@@ -1,4 +1,4 @@
-package hello_world
+package helloworld
 
 const englishPrefix = "Hello, "
 const spanishPrefix = "Hola, "
@@ -25,5 +25,3 @@ func greetingPrefix(language string) string {
 	}
 	return prefix
 }
-
-func main() {}
