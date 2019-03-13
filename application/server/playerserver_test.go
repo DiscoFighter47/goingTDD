@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/DiscoFighter47/goingTDD/application/data/inmemory"
+	"github.com/DiscoFighter47/goingTDD/application/data/memory"
 	"github.com/DiscoFighter47/goingTDD/application/model"
 )
 
@@ -140,7 +140,7 @@ func TestLeague(t *testing.T) {
 }
 
 func TestIntegration(t *testing.T) {
-	svr := NewPlayerServer(inmemory.NewPlayerStore())
+	svr := NewPlayerServer(memory.NewPlayerStore())
 	t.Run("Post Pepper's score and get score", func(t *testing.T) {
 		requestPost, _ := http.NewRequest(http.MethodPost, "/players/pepper", nil)
 		requestGet, _ := http.NewRequest(http.MethodGet, "/players/pepper", nil)

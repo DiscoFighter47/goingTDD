@@ -1,4 +1,4 @@
-package inmemory
+package memory
 
 import "github.com/DiscoFighter47/goingTDD/application/model"
 
