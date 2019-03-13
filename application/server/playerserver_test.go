@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -6,12 +6,15 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/DiscoFighter47/goingTDD/application/data/inmemory"
+	"github.com/DiscoFighter47/goingTDD/application/model"
 )
 
 type StubPlayerStore struct {
 	Scores   map[string]int
 	WinCalls []string
-	league   []*Player
+	league   []*model.Player
 }
 
 func (stub *StubPlayerStore) GetPlayerScore(name string) (int, bool) {
@@ -23,7 +26,7 @@ func (stub *StubPlayerStore) RegisterWin(name string) {
 	stub.WinCalls = append(stub.WinCalls, name)
 }
 
-func (stub *StubPlayerStore) GetLeagueTable() []*Player {
+func (stub *StubPlayerStore) GetLeagueTable() []*model.Player {
 	return stub.league
 }
 
@@ -45,14 +48,14 @@ func assertWinCalls(t *testing.T, got, want []string) {
 		t.Errorf("got '%v' want '%v'", got, want)
 	}
 }
-func assertLeague(t *testing.T, got, want []*Player) {
+func assertLeague(t *testing.T, got, want []*model.Player) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got '%v' want '%v'", got, want)
 	}
 }
 
-func TestGetPlayers(t *testing.T) {
+func TestServeScore(t *testing.T) {
 	stub := &StubPlayerStore{
 		Scores: map[string]int{
 			"pepper": 20,
@@ -105,10 +108,19 @@ func TestRegisterScore(t *testing.T) {
 }
 
 func TestLeague(t *testing.T) {
-	league := []*Player{
-		{"Zahid", 20},
-		{"Al", 15},
-		{"Tair", 10},
+	league := []*model.Player{
+		{
+			Name:  "Zahid",
+			Score: 20,
+		},
+		{
+			Name:  "Al",
+			Score: 15,
+		},
+		{
+			Name:  "Tair",
+			Score: 10,
+		},
 	}
 	stub := &StubPlayerStore{nil, nil, league}
 	svr := NewPlayerServer(stub)
@@ -119,7 +131,7 @@ func TestLeague(t *testing.T) {
 		svr.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
 
-		var got []*Player
+		var got []*model.Player
 		if err := json.NewDecoder(response.Body).Decode(&got); err != nil {
 			t.Fatal("unable to parse response body")
 		}
@@ -128,7 +140,7 @@ func TestLeague(t *testing.T) {
 }
 
 func TestIntegration(t *testing.T) {
-	svr := NewPlayerServer(NewInMemoryStore())
+	svr := NewPlayerServer(inmemory.NewPlayerStore())
 	t.Run("Post Pepper's score and get score", func(t *testing.T) {
 		requestPost, _ := http.NewRequest(http.MethodPost, "/players/pepper", nil)
 		requestGet, _ := http.NewRequest(http.MethodGet, "/players/pepper", nil)
@@ -151,12 +163,15 @@ func TestIntegration(t *testing.T) {
 		requestLeague, _ := http.NewRequest(http.MethodGet, "/league", nil)
 		response3 := httptest.NewRecorder()
 		svr.ServeHTTP(response3, requestLeague)
-		var got []*Player
+		var got []*model.Player
 		if err := json.NewDecoder(response3.Body).Decode(&got); err != nil {
 			t.Fatal("unable to parse response body")
 		}
-		assertLeague(t, got, []*Player{
-			{"pepper", 5},
+		assertLeague(t, got, []*model.Player{
+			{
+				Name:  "pepper",
+				Score: 5,
+			},
 		})
 	})
 }
