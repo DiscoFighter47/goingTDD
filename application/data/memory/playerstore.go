@@ -18,16 +18,16 @@ func (s *PlayerStore) GetPlayerScore(name string) (int, bool) {
 	return val, found
 }
 
-// RegisterWin regiters score
+// RegisterWin registers score
 func (s *PlayerStore) RegisterWin(name string) {
 	s.store[name]++
 }
 
 // GetLeagueTable returns league table
-func (s *PlayerStore) GetLeagueTable() []*model.Player {
-	league := []*model.Player{}
+func (s *PlayerStore) GetLeagueTable() []model.Player {
+	league := []model.Player{}
 	for name, score := range s.store {
-		league = append(league, &model.Player{
+		league = append(league, model.Player{
 			Name:  name,
 			Score: score,
 		})
