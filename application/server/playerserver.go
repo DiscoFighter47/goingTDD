@@ -30,7 +30,6 @@ func NewPlayerServer(store data.PlayerStore) *PlayerServer {
 
 func (svr *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(svr.store.GetLeagueTable())
-	w.WriteHeader(http.StatusOK)
 }
 
 func (svr *PlayerServer) scoreHandler(w http.ResponseWriter, r *http.Request) {
