@@ -3,6 +3,7 @@ package file
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 
@@ -53,6 +54,15 @@ func NewPlayerStore(file *os.File) (*PlayerStore, error) {
 		database: json.NewEncoder(&tape{file}),
 		league:   l,
 	}, nil
+}
+
+// NewPlayerStoreByPath returns a new player store
+func NewPlayerStoreByPath(path string) (*PlayerStore, error) {
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal("error opening file", path)
+	}
+	return NewPlayerStore(file)
 }
 
 // GetPlayerScore returns fixed score
