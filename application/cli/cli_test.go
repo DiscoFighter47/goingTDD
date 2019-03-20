@@ -1,54 +1,73 @@
 package cli_test
 
 import (
-	"reflect"
+	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/DiscoFighter47/goingTDD/application/cli"
-	"github.com/DiscoFighter47/goingTDD/application/model"
 )
 
-type StubPlayerStore struct {
-	Scores   map[string]int
-	WinCalls []string
-	league   []model.Player
+type spyGame struct {
+	start       int
+	startCalled bool
+	finish      string
 }
 
-func (stub *StubPlayerStore) GetPlayerScore(name string) (int, bool) {
-	val, found := stub.Scores[name]
-	return val, found
+func (spy *spyGame) Start(numPlayer int) {
+	spy.start = numPlayer
+	spy.startCalled = true
 }
 
-func (stub *StubPlayerStore) RegisterWin(name string) {
-	stub.WinCalls = append(stub.WinCalls, name)
-}
-
-func (stub *StubPlayerStore) GetLeagueTable() []model.Player {
-	return stub.league
-}
-
-func assertWinCalls(t *testing.T, got, want []string) {
-	t.Helper()
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got '%v' want '%v'", got, want)
-	}
+func (spy *spyGame) Finish(player string) {
+	spy.finish = player
 }
 
 func TestCLI(t *testing.T) {
 	t.Run("Zahid wins", func(t *testing.T) {
-		input := strings.NewReader("zahid scores")
-		playerStore := &StubPlayerStore{}
-		cli := cli.NewCLI(playerStore, input)
+		input := strings.NewReader("7\nzahid scores")
+		output := &bytes.Buffer{}
+		game := &spyGame{}
+		cli := cli.NewCLI(input, output, game)
 		cli.PlayPoker()
-		assertWinCalls(t, playerStore.WinCalls, []string{"zahid"})
+		assertOutput(t, output.String(), "Please enter the number of players: ")
+		assertStart(t, game.start, 7)
 	})
 
-	t.Run("Tair wins", func(t *testing.T) {
-		input := strings.NewReader("tair scores")
-		playerStore := &StubPlayerStore{}
-		cli := cli.NewCLI(playerStore, input)
+	t.Run("Non numeric value", func(t *testing.T) {
+		input := strings.NewReader("zahid scores")
+		output := &bytes.Buffer{}
+		game := &spyGame{}
+		cli := cli.NewCLI(input, output, game)
 		cli.PlayPoker()
-		assertWinCalls(t, playerStore.WinCalls, []string{"tair"})
+		assertStartCalled(t, game.startCalled)
 	})
+}
+
+func assertOutput(t *testing.T, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got output '%s' want '%s'", got, want)
+	}
+}
+
+func assertStart(t *testing.T, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got start '%d' want '%d'", got, want)
+	}
+}
+
+func assertStartCalled(t *testing.T, called bool) {
+	t.Helper()
+	if called {
+		t.Error("game start called")
+	}
+}
+
+func assertFinish(t *testing.T, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got finish '%s' want '%s'", got, want)
+	}
 }
